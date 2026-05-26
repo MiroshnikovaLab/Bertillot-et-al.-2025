@@ -1,4 +1,4 @@
-import numpy as np
+﻿import numpy as np
 import tensorflow as tf
 from keras.models import Model
 from tensorflow.keras import backend as keras
@@ -131,18 +131,18 @@ def normalizePercentile(
 def predict_prob_as_tiles(image_path: str,
                             model: Model) -> np.ndarray:
     """
-    Predict with 50% tile overlap and smooth Hann‐window blending.
+    Predict with 50% tile overlap and smooth Hann-window blending.
     """
     # Load & normalize
     img0 = io.imread(image_path, as_gray=True)
     img  = normalizePercentile(img0)
     H, W = img.shape
 
-    # Tile size & half‐overlap stride
+    # Tile size and half-overlap stride
     ph, pw = model.input_shape[1:3]
     stride_h, stride_w = ph // 2, pw // 2
 
-    # Reflect padding by half‐tile
+    # Reflect padding by half-tile
     pad_h, pad_w = ph//2, pw//2
     img_p = np.pad(img, ((pad_h,pad_h), (pad_w,pad_w)), mode='reflect')
 

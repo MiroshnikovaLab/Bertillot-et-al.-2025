@@ -1,0 +1,36 @@
+# Local configuration
+config.local.json
+.env
+
+# Python / Jupyter
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Data, models, and generated outputs
+data/
+models/
+outputs/
+figures/
+results/
+*.h5
+*.hdf
+*.hdf5
+*.h5ad
+*.joblib
+*.keras
+*.ckpt
+*.tif
+*.tiff
+*.png
+*.pdf
+*.xlsx
+*.csv
+
+# Keep lightweight examples if added later
+!data/README.md
+!data/**/*.example.*
+!outputs/README.md

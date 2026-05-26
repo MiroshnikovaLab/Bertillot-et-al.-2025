@@ -1,0 +1,21 @@
+name: neighborhood-analysis
+channels:
+  - conda-forge
+dependencies:
+  - python=3.10.9
+  - pip
+  - pip:
+      - numpy==1.23.5
+      - pandas==2.2.3
+      - scipy==1.10.0
+      - scikit-image==0.19.3
+      - scikit-learn==1.5.2
+      - joblib==1.4.2
+      - networkx==3.4.2
+      - python-louvain==0.16
+      - opencv-python==4.10.0.84
+      - Pillow==10.4.0
+      - matplotlib==3.7.0
+      - seaborn==0.13.2
+      - numba==0.56.4
+      - skan

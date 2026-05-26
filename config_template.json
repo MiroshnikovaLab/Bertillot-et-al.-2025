@@ -1,0 +1,29 @@
+{
+  "data_root": "data",
+  "model_root": "models",
+  "output_root": "outputs",
+  "architecture": {
+    "tile_dir": "data/architecture/tiles",
+    "training_labels": "data/architecture/training_labels.csv",
+    "embedding_dir": "data/architecture/embeddings",
+    "probability_dir": "outputs/architecture/probabilities",
+    "tumor_stroma_image_dir": "data/architecture/images",
+    "tumor_stroma_mask_dir": "outputs/architecture/tumor_stroma_masks",
+    "tumor_stroma_unet_model": "models/tumor_stroma_unet.h5",
+    "architecture_unet_model": "models/architecture_unet.h5",
+    "classifier_dir": "models/architecture_classifier"
+  },
+  "nuclear_shapes": {
+    "mask_dir": "data/nuclear_shapes/masks",
+    "output_dir": "outputs/nuclear_shapes"
+  },
+  "geomx": {
+    "data_dir": "data/geomx",
+    "h5ad": "data/geomx/geomx_crc_dataset.h5ad",
+    "gene_sets": "data/geomx/gene_sets.json",
+    "raw_dge": "data/geomx/raw_dges_architectures.csv",
+    "fetal_signature": "data/geomx/fetal_signature.xlsx",
+    "pseudotime_dir": "data/geomx/pseudotime",
+    "figure_dir": "outputs/geomx/figures"
+  }
+}
