@@ -3,8 +3,9 @@
 
 Copyright (c) 2026 Fabien Bertillot and co-authors / Miroshnikova Lab.
 
-This work - including the analysis notebooks, helper source code, and
-accompanying configuration files - is licensed under the
+This work - including the analysis notebooks, helper source code,
+accompanying configuration files, and the pretrained U-Net models in
+models/ - is licensed under the
 Creative Commons Attribution-NonCommercial 4.0 International License
 (CC BY-NC 4.0).
 
@@ -31,7 +32,11 @@ Plain-language summary:
 
 When using this work, please cite:
 
-    Bertillot, F. et al. (2026). [Paper title]. [Journal]. DOI: [pending]
+    Bertillot, F., Hervé, S., Outla, Z. et al. Heterogeneity co-evolves with
+    architecture to determine colon cancer outcome. Manuscript in revision
+    (2026).
+
+    Analysis code and pretrained U-Nets: https://doi.org/10.5281/zenodo.20407001
 
 Third-party components
 ----------------------

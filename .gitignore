@@ -34,3 +34,10 @@ results/
 !data/README.md
 !data/**/*.example.*
 !outputs/README.md
+
+# Pretrained U-Nets shipped with the repository (architecture U-Net split into parts)
+!models/
+models/*
+!models/tumor_stroma_unet.h5
+!models/architecture_unet.h5.part*
+!models/join_architecture_unet.py

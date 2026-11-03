@@ -26,6 +26,11 @@ GeoMx Analysis/
   geoMx_analysis_notebook.ipynb
   geoMx_pseudotime_plots.ipynb
   geomxlib.py
+
+models/
+  tumor_stroma_unet.h5
+  architecture_unet.h5.part01 ... part04
+  join_architecture_unet.py
 ```
 
 ## Analysis Modules
@@ -48,6 +53,30 @@ The notebooks are independent modules rather than a single ordered workflow. Run
   Reproduce GeoMx clustering, DGE, and GSEA analyses.
 - **GeoMx pseudotime plots**: `GeoMx Analysis/geoMx_pseudotime_plots.ipynb`
   Reproduce pseudotime and spatial projection figures from GeoMx-derived inputs.
+
+## Pretrained Models
+
+The two pretrained U-Nets used in the paper are included in `models/`. Both are ZeroCostDL4Mic 2D multilabel U-Nets (https://github.com/HenriquesLab/ZeroCostDL4Mic) saved with Keras 2.15, taking single-channel `512 x 512` pan-cadherin images as input.
+
+| Model | File | Output | Used by |
+|---|---|---|---|
+| Tumour–stroma U-Net (trained on 30 TMA cores) | `models/tumor_stroma_unet.h5` | 3 classes: `0` background, `1` stroma, `2` tumour | `tumor-stroma_mask_prediction.ipynb` |
+| Architecture U-Net (trained on 196 archetype TMA cores) | `models/architecture_unet.h5` | 5 classes: glandular, fragmented, solid, stroma, edge/background; bottleneck `conv2d_23` gives the 1024-dim tile embeddings | `architecture_training_pipeline.ipynb` |
+
+GitHub limits files to 100 MB, so the architecture U-Net (373 MB) is stored in four parts. Reassemble it once before running the notebooks:
+
+```bash
+python models/join_architecture_unet.py
+```
+
+The script writes `models/architecture_unet.h5` and checks it against the SHA-256 of the original file:
+
+```text
+4bc19bac1439f984c56f6f28f2e5ae3eb0e00b3790e1c525efe7ddb5eda1bfc5  architecture_unet.h5
+2e7c069b80743a695b668db05124ab41456269927dfbccdea372fc939c77bab9  tumor_stroma_unet.h5
+```
+
+The architecture U-Net is also available as a single file, with ONNX exports and inference code, at https://doi.org/10.5281/zenodo.20343193. The tile-level architecture classifier is not included: as described in the paper Methods, it needs to be retrained for each dataset with `architecture_training_pipeline.ipynb`.
 
 ## Installation
 
@@ -99,14 +128,21 @@ jupyter lab
 ## Notes
 
 - Folder names contain spaces to preserve the submitted analysis structure. Quote paths in shell commands.
-- Generated files, trained model weights, and private data are excluded from version control.
+- Generated files, the trained architecture classifier, and private data are excluded from version control. The pretrained U-Nets are included (see Pretrained Models).
+- If U-Net inference on CPU is unexpectedly slow (minutes per 512 px patch), set the environment variable `TF_ENABLE_ONEDNN_OPTS=0` before starting Jupyter.
 - `cupy` is only needed for GPU-accelerated nuclear shape extraction.
 - `skan` is used for manuscript-aligned skeleton branch distances; the morphology utility falls back to total skeleton length if unavailable.
 - `python-louvain` and `networkx` are needed for the corrected centroid-community fragmentation index.
 
 ## Citation
 
-If you use this code, please cite the associated Bertillot et al. manuscript.
+If you use this code or the pretrained models, please cite:
+
+> Bertillot, F., Hervé, S., Outla, Z. *et al.* Heterogeneity co-evolves with architecture to determine colon cancer outcome. Manuscript in revision (2026).
+>
+> Analysis code and pretrained U-Nets: https://doi.org/10.5281/zenodo.20407001
+>
+> Architecture U-Net with ONNX exports: https://doi.org/10.5281/zenodo.20343193
 
 ## License
 

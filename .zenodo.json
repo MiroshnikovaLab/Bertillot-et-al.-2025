@@ -1,0 +1,45 @@
+{
+  "title": "Bertillot et al. 2026: analysis code and pretrained U-Net models",
+  "upload_type": "software",
+  "version": "v1.1",
+  "description": "<p>Analysis code and pretrained models for Bertillot, F., Herv&eacute;, S., Outla, Z. et al. <em>Heterogeneity co-evolves with architecture to determine colon cancer outcome</em> (manuscript in revision, 2026).</p><p>The repository contains the notebooks and helper modules for tumour architecture analysis of colorectal cancer tissue microarrays (tumour&ndash;stroma segmentation, architecture classification, morphology and neighbourhood features), nuclear shape analysis, and GeoMx spatial transcriptomics analysis.</p><p>It includes the two pretrained ZeroCostDL4Mic 2D multilabel U-Nets used in the paper (Keras .h5, 512&times;512 single-channel pan-cadherin input): the tumour&ndash;stroma U-Net (<code>models/tumor_stroma_unet.h5</code>, trained on 30 TMA cores) and the architecture U-Net (<code>models/architecture_unet.h5</code>, trained on 196 archetype TMA cores; stored in four parts, reassembled with <code>models/join_architecture_unet.py</code>). ONNX exports of the architecture U-Net and inference code are available at doi:10.5281/zenodo.20343193.</p><p>Patient images and data are not included; see the paper's Data availability statement.</p>",
+  "creators": [
+    {
+      "name": "Bertillot, Fabien",
+      "affiliation": "Max Planck Institute for Molecular Biomedicine; University of Helsinki",
+      "orcid": "0009-0000-5836-8711"
+    },
+    {
+      "name": "Wickström, Sara A.",
+      "affiliation": "Max Planck Institute for Molecular Biomedicine; University of Helsinki",
+      "orcid": "0000-0001-6383-6292"
+    },
+    {
+      "name": "Miroshnikova, Yekaterina A.",
+      "affiliation": "National Institute of Diabetes and Digestive and Kidney Diseases, National Institutes of Health; Max Planck Institute for Molecular Biomedicine",
+      "orcid": "0000-0001-9771-4963"
+    }
+  ],
+  "license": "cc-by-nc-4.0",
+  "keywords": [
+    "colorectal cancer",
+    "tumor architecture",
+    "multi-label U-Net",
+    "tumor-stroma segmentation",
+    "tissue microarray (TMA)",
+    "GeoMx",
+    "digital pathology"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "10.5281/zenodo.20343193",
+      "relation": "isSupplementedBy",
+      "scheme": "doi"
+    },
+    {
+      "identifier": "https://github.com/HenriquesLab/ZeroCostDL4Mic",
+      "relation": "isDerivedFrom",
+      "scheme": "url"
+    }
+  ]
+}
