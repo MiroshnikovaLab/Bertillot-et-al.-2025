@@ -1,96 +1,17 @@
-"""Reusable helpers for tumor architecture embedding and prediction notebooks."""
+"""Reusable helpers for the tumor architecture classifier and prediction notebooks."""
 
 from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Iterable, Optional, Tuple, Union
+from typing import Iterable, Union
 
 import joblib
 import numpy as np
 import pandas as pd
-from skimage import io
-from tensorflow.keras.layers import GlobalAveragePooling2D
-from tensorflow.keras.models import Model
-
-from UNet_utils import normalizePercentile
 
 
 PathLike = Union[str, Path]
-
-
-def make_feature_extractor(model, feature_layer_name: Optional[str] = None) -> Model:
-    """Build a model that returns globally pooled bottleneck features."""
-    if feature_layer_name is None:
-        feature_layer = model.layers[-2].output
-    else:
-        feature_layer = model.get_layer(feature_layer_name).output
-    pooled = GlobalAveragePooling2D()(feature_layer)
-    return Model(inputs=model.input, outputs=pooled)
-
-
-def extract_tile_embedding(feature_extractor: Model, tile: np.ndarray) -> np.ndarray:
-    """Normalize one 2D tile and return a flat feature vector."""
-    tile = normalizePercentile(tile)
-    tile = np.asarray(tile, dtype=np.float32)
-    if tile.ndim != 2:
-        raise ValueError("Expected a 2D grayscale tile.")
-    model_input = tile[np.newaxis, ..., np.newaxis]
-    return np.asarray(feature_extractor.predict(model_input, verbose=0)[0], dtype=float)
-
-
-def iter_tile_coordinates(
-    image_shape: Tuple[int, int],
-    tile_size: int,
-    stride: Optional[int] = None,
-) -> list[Tuple[int, int]]:
-    """Return top-left tile coordinates covering an image."""
-    height, width = image_shape
-    stride = stride or tile_size
-    coords = []
-    for row in range(0, max(height - tile_size + 1, 1), stride):
-        for col in range(0, max(width - tile_size + 1, 1), stride):
-            coords.append((row, col))
-    if height >= tile_size and width >= tile_size:
-        last_row = height - tile_size
-        last_col = width - tile_size
-        edge_coords = {(row, col) for row, col in coords}
-        for row in sorted({coord[0] for coord in coords} | {last_row}):
-            edge_coords.add((row, last_col))
-        for col in sorted({coord[1] for coord in coords} | {last_col}):
-            edge_coords.add((last_row, col))
-        coords = sorted(edge_coords)
-    return coords
-
-
-def collect_image_embeddings(
-    image_path: PathLike,
-    feature_extractor: Model,
-    tile_size: int,
-    stride: Optional[int] = None,
-) -> dict[str, dict[str, object]]:
-    """Extract feature embeddings for all tiles in one image."""
-    image = io.imread(image_path, as_gray=True)
-    coords = iter_tile_coordinates(image.shape, tile_size=tile_size, stride=stride)
-    embeddings: dict[str, dict[str, object]] = {}
-    for idx, (row, col) in enumerate(coords):
-        tile = image[row : row + tile_size, col : col + tile_size]
-        if tile.shape != (tile_size, tile_size):
-            padded = np.zeros((tile_size, tile_size), dtype=tile.dtype)
-            padded[: tile.shape[0], : tile.shape[1]] = tile
-            tile = padded
-        embeddings[str(idx)] = {
-            "x": int(row),
-            "y": int(col),
-            "embedding": extract_tile_embedding(feature_extractor, tile).tolist(),
-        }
-    return embeddings
-
-
-def save_embedding_json(embeddings: dict[str, dict[str, object]], output_path: PathLike) -> None:
-    output_path = Path(output_path)
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    output_path.write_text(json.dumps(embeddings), encoding="utf-8")
 
 
 def load_classifier_artifacts(classifier_dir: PathLike):

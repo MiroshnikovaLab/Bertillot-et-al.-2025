@@ -307,6 +307,7 @@ def compute_dge_from_pydeseq2(counts_df,
                               metadata,
                               condition,
                               label,
+                              covariates=None,
                               min_count=2):
     
     from pydeseq2.dds import DeseqDataSet
@@ -328,7 +329,7 @@ def compute_dge_from_pydeseq2(counts_df,
     dds = DeseqDataSet(
         counts=counts_df_.astype(int),
         metadata=metadata_,
-        design_factors=[condition],
+        design_factors=[*(covariates or []), condition],
         refit_cooks=True,
         inference=inference,
     )

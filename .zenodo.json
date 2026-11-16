@@ -1,8 +1,8 @@
 {
-  "title": "Bertillot et al. 2026: analysis code and pretrained U-Net models",
+  "title": "Bertillot et al. 2026: analysis code, pretrained U-Net models and gene sets",
   "upload_type": "software",
   "version": "v1.1",
-  "description": "<p>Analysis code and pretrained models for Bertillot, F., Herv&eacute;, S., Outla, Z. et al. <em>Heterogeneity co-evolves with architecture to determine colon cancer outcome</em> (manuscript in revision, 2026).</p><p>The repository contains the notebooks and helper modules for tumour architecture analysis of colorectal cancer tissue microarrays (tumour&ndash;stroma segmentation, architecture classification, morphology and neighbourhood features), nuclear shape analysis, and GeoMx spatial transcriptomics analysis.</p><p>It includes the two pretrained ZeroCostDL4Mic 2D multilabel U-Nets used in the paper (Keras .h5, 512&times;512 single-channel pan-cadherin input): the tumour&ndash;stroma U-Net (<code>models/tumor_stroma_unet.h5</code>, trained on 30 TMA cores) and the architecture U-Net (<code>models/architecture_unet.h5</code>, trained on 196 archetype TMA cores; stored in four parts, reassembled with <code>models/join_architecture_unet.py</code>). ONNX exports of the architecture U-Net and inference code are available at doi:10.5281/zenodo.20343193.</p><p>Patient images and data are not included; see the paper's Data availability statement.</p>",
+  "description": "<p>Analysis code and pretrained models for Bertillot, F., Herv&eacute;, S., Outla, Z. et al. <em>Heterogeneity co-evolves with architecture to determine colon cancer outcome</em> (manuscript in revision, 2026).</p><p>The repository contains the notebooks and helper modules for tumour architecture analysis of colorectal cancer tissue microarrays (tumour&ndash;stroma segmentation, architecture classification, morphology and neighbourhood features), nuclear shape analysis, and GeoMx spatial transcriptomics analysis.</p><p>It includes the two pretrained ZeroCostDL4Mic 2D multilabel U-Nets used in the paper (Keras .h5, 512&times;512 single-channel pan-cadherin input): the tumour&ndash;stroma U-Net (<code>models/tumor_stroma_unet.h5</code>, trained on 30 TMA cores) and the architecture U-Net (<code>models/architecture_unet.h5</code>, trained on 196 archetype TMA cores; stored in four parts, reassembled with <code>models/join_architecture_unet.py</code>). ONNX exports of the architecture U-Net and inference code are available at doi:10.5281/zenodo.20343193.</p><p>It also includes the gene sets used for the GeoMx and single-cell analyses (<code>data/geomx/gene_sets.json</code>): the stem-cell panel including the human fetal signature, the EMT panel, and the consensus Core-CBC, Core-RegSC and Core-EMT lists.</p><p>Patient images and data are not included; see the paper's Data availability statement.</p>",
   "creators": [
     {
       "name": "Bertillot, Fabien",
@@ -28,6 +28,7 @@
     "tumor-stroma segmentation",
     "tissue microarray (TMA)",
     "GeoMx",
+    "gene sets",
     "digital pathology"
   ],
   "related_identifiers": [

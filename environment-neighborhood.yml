@@ -4,6 +4,7 @@ channels:
 dependencies:
   - python=3.10.9
   - pip
+  - jupyterlab
   - pip:
       - numpy==1.23.5
       - pandas==2.2.3

@@ -31,6 +31,9 @@ models/
   tumor_stroma_unet.h5
   architecture_unet.h5.part01 ... part04
   join_architecture_unet.py
+
+data/geomx/
+  gene_sets.json
 ```
 
 ## Analysis Modules
@@ -61,7 +64,7 @@ The two pretrained U-Nets used in the paper are included in `models/`. Both are 
 | Model | File | Output | Used by |
 |---|---|---|---|
 | Tumour–stroma U-Net (trained on 30 TMA cores) | `models/tumor_stroma_unet.h5` | 3 classes: `0` background, `1` stroma, `2` tumour | `tumor-stroma_mask_prediction.ipynb` |
-| Architecture U-Net (trained on 196 archetype TMA cores) | `models/architecture_unet.h5` | 5 classes: glandular, fragmented, solid, stroma, edge/background; bottleneck `conv2d_23` gives the 1024-dim tile embeddings | `architecture_training_pipeline.ipynb` |
+| Architecture U-Net (trained on 196 archetype TMA cores) | `models/architecture_unet.h5` | 5 classes: `0` edge/background, `1` stroma, `2` glandular, `3` solid, `4` fragmented; bottleneck `conv2d_23` gives the 1024-dim tile embeddings | `architecture_training_pipeline.ipynb` |
 
 GitHub limits files to 100 MB, so the architecture U-Net (373 MB) is stored in four parts. Reassemble it once before running the notebooks:
 
@@ -76,7 +79,34 @@ The script writes `models/architecture_unet.h5` and checks it against the SHA-25
 2e7c069b80743a695b668db05124ab41456269927dfbccdea372fc939c77bab9  tumor_stroma_unet.h5
 ```
 
-The architecture U-Net is also available as a single file, with ONNX exports and inference code, at https://doi.org/10.5281/zenodo.20343193. The tile-level architecture classifier is not included: as described in the paper Methods, it needs to be retrained for each dataset with `architecture_training_pipeline.ipynb`.
+The architecture U-Net is also available as a single file, with ONNX exports and inference code, at https://doi.org/10.5281/zenodo.20343193. The tile-level architecture classifier is not included: as described in the paper Methods, it needs to be retrained for each dataset with `architecture_training_pipeline.ipynb`, which saves it to `models/architecture_classifier/`.
+
+## Gene Sets
+
+The gene sets used in the paper are included in `data/geomx/gene_sets.json`. The sources of each panel are listed in the manuscript Methods (gene set enrichment analysis and consensus gene sets).
+
+| Group | Gene sets | Used for |
+|---|---|---|
+| `STEM_signatures` | Crypt base, LGR5 ISC, Fetal (human), RSC, revCSC, EpiHR, coreHRC | GeoMx GSEA (`geoMx_analysis_notebook.ipynb`) |
+| `EMT_signatures` | Wound response, Mesenchymal, Matrix remodeling, TGFB activation, EMT activation, EMT Hallmark, pEMT, EMT-II (MP13) | GeoMx GSEA |
+| `CRC_gene_sets` | Consensus lists Core-EMT (`Core EMT`), Core-CBC (`STEM-CBC`) and Core-RegSC (`STEM-RegCS`), plus β-catenin (`CTNNB1_TARGETS`) and YAP (`YAP targets`) target genes | Single-cell and organoid scoring |
+
+"Fetal (human)" contains the robust genes of the human fetal signature.
+
+## Input Data
+
+Patient images, GeoMx data and derived tables are not included (see the paper's Data availability statement). The notebooks expect them under `data/`, following the layout in `config_template.json`. For the GeoMx notebooks:
+
+- `data/geomx/geomx_crc_dataset.h5ad` with `obs` columns `patient_id` (`P1`–`P8`), `segment` (`Segment 1` = tumour) and `architectures` (`solid`, `glandular dense`, `glandular`, `glandular infiltrated`, `mod. fragmented`, `fragmented`)
+- `data/geomx/raw_dges_architectures.csv` (differential expression results used for GSEA)
+- `data/geomx/pseudotime/P<n>_pseudotime_data.csv` for the three pseudotime patients (`P5`, `P6`, `P8`)
+
+For the architecture notebooks:
+
+- `data/architecture/images/`: single-channel pan-cadherin TIFFs of the TMA cores for the tumour–stroma notebook. The whole-core example of the training notebook (`IMAGE_NAME`) also accepts a two-channel TIFF, in which case channel 1 (pan-cadherin) is used.
+- `data/architecture/tiles/`: `448 x 448` pan-cadherin tiles named `<core>_tile_x<x>_y<y>.png`
+- `data/architecture/training_labels.csv` with columns `image_name` and `label` (`Glandular`, `Fragmented`, `Solid`, `Stroma`, `Edge`; `Odd` tiles are merged into `Edge`)
+- `data/architecture/embeddings/<core>_embedding.json`: tile embeddings (`x`, `y`, 1,024-value `embedding`) for the label prediction notebook
 
 ## Installation
 
@@ -96,7 +126,7 @@ conda activate architecture-analysis
 Available environments:
 
 - `environment-architecture.yml`: U-Net segmentation, architecture embeddings, and architecture classification.
-- `environment-geomx.yml`: GeoMx spatial transcriptomics analysis, differential expression, and GSEA.
+- `environment-geomx.yml`: GeoMx spatial transcriptomics analysis, differential expression, and GSEA. It pins Scanpy 1.10.2 and harmonypy 0.0.10 rather than the Scanpy 1.9.6 and Harmony 0.0.9 cited in the manuscript Methods; the differential expression results reproduce with these versions.
 - `environment-neighborhood.yml`: cell-neighborhood distances, orientation order, and stroma proximity features.
 - `environment-nuclear-shapes.yml`: nuclear shape feature extraction from labeled nuclear masks.
 
@@ -111,11 +141,11 @@ python -m pip install --upgrade pip
 python -m pip install tensorflow==2.17.0 keras==3.6.0 numpy==1.26.4
 ```
 
-This route is often sufficient for CPU-only utilities and lightweight notebook review. For GPU TensorFlow, CuPy, Scanpy, or PyDESeq2 workflows, Conda or an existing institutional/HPC environment is usually more reliable.
+This route is often sufficient for CPU-only utilities and lightweight notebook review. For GPU TensorFlow, Scanpy, or PyDESeq2 workflows, Conda or an existing institutional/HPC environment is usually more reliable.
 
 ## Usage
 
-Open the notebook for the module of interest and edit the configuration cell at the top of the notebook to point to the local input and output paths. A `config_template.json` file is included as an optional template for organizing paths across notebooks.
+Open the notebook for the module of interest and edit the configuration cell at the top of the notebook (tagged `parameters`) to point to the local input and output paths. By default the paths are relative to the notebook and follow the layout in `config_template.json`.
 
 Example:
 
@@ -125,12 +155,20 @@ conda activate neighborhood-analysis
 jupyter lab
 ```
 
+The notebooks can also be run headless with [papermill](https://papermill.readthedocs.io), passing the paths as parameters:
+
+```bash
+python -m pip install papermill
+cd "Architecture Analysis"
+papermill neighborhood_feature_extraction.ipynb out.ipynb -p CELL_FEATURE_TABLE cells.csv -p OUT_DIR ../outputs/neighborhood
+```
+
 ## Notes
 
 - Folder names contain spaces to preserve the submitted analysis structure. Quote paths in shell commands.
-- Generated files, the trained architecture classifier, and private data are excluded from version control. The pretrained U-Nets are included (see Pretrained Models).
+- The GeoMx differential expression in the paper compares each architecture against all other tumour regions without a patient term. To adjust for patient, set `DGE_COVARIATES = ['patient_id']` in the notebook, or run it with `papermill geoMx_analysis_notebook.ipynb out.ipynb -y "DGE_COVARIATES: [patient_id]"`. Architecture and patient are strongly confounded in this dataset (for example, fragmented regions come mostly from two patients), so this changes several architecture-level results.
+- Generated files, the trained architecture classifier, and private data are excluded from version control. The pretrained U-Nets and the gene sets are included (see Pretrained Models and Gene Sets).
 - If U-Net inference on CPU is unexpectedly slow (minutes per 512 px patch), set the environment variable `TF_ENABLE_ONEDNN_OPTS=0` before starting Jupyter.
-- `cupy` is only needed for GPU-accelerated nuclear shape extraction.
 - `skan` is used for manuscript-aligned skeleton branch distances; the morphology utility falls back to total skeleton length if unavailable.
 - `python-louvain` and `networkx` are needed for the corrected centroid-community fragmentation index.
 
@@ -140,7 +178,7 @@ If you use this code or the pretrained models, please cite:
 
 > Bertillot, F., Hervé, S., Outla, Z. *et al.* Heterogeneity co-evolves with architecture to determine colon cancer outcome. Manuscript in revision (2026).
 >
-> Analysis code and pretrained U-Nets: https://doi.org/10.5281/zenodo.20407001
+> Analysis code, pretrained U-Nets and gene sets: https://doi.org/10.5281/zenodo.20407001
 >
 > Architecture U-Net with ONNX exports: https://doi.org/10.5281/zenodo.20343193
 

@@ -11,7 +11,7 @@ __pycache__/
 .ruff_cache/
 
 # Data, models, and generated outputs
-data/
+data/*
 models/
 outputs/
 figures/
@@ -41,3 +41,8 @@ models/*
 !models/tumor_stroma_unet.h5
 !models/architecture_unet.h5.part*
 !models/join_architecture_unet.py
+
+# Gene sets shipped with the repository (patient data in data/geomx stay private)
+!data/geomx/
+data/geomx/*
+!data/geomx/gene_sets.json

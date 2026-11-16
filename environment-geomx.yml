@@ -4,6 +4,7 @@ channels:
 dependencies:
   - python=3.10
   - pip
+  - jupyterlab
   - pip:
       - numpy==1.23.5
       - pandas==2.2.3
@@ -17,8 +18,7 @@ dependencies:
       - gseapy==1.1.3
       - scikit-learn==1.5.2
       - watermark==2.5.0
-      - harmonypy
+      - harmonypy==0.0.10
       - leidenalg
       - igraph
-      - pydeseq2
-      - openpyxl
+      - pydeseq2==0.4.12

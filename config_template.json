@@ -22,7 +22,6 @@
     "h5ad": "data/geomx/geomx_crc_dataset.h5ad",
     "gene_sets": "data/geomx/gene_sets.json",
     "raw_dge": "data/geomx/raw_dges_architectures.csv",
-    "fetal_signature": "data/geomx/fetal_signature.xlsx",
     "pseudotime_dir": "data/geomx/pseudotime",
     "figure_dir": "outputs/geomx/figures"
   }

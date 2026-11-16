@@ -4,6 +4,7 @@ channels:
 dependencies:
   - python=3.10
   - pip
+  - jupyterlab
   - pip:
       - numpy==1.26.3
       - pandas==2.2.2
@@ -12,6 +13,5 @@ dependencies:
       - opencv-python==4.10.0.84
       - imageio==2.35.1
       - spatial-efd==1.2.1
-      - cupy==13.4.0
       - matplotlib==3.9.2
       - watermark==2.5.0
