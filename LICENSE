@@ -36,7 +36,8 @@ When using this work, please cite:
     architecture to determine colon cancer outcome. Manuscript in revision
     (2026).
 
-    Analysis code and pretrained U-Nets: https://doi.org/10.5281/zenodo.20407001
+    Analysis code, pretrained U-Nets and gene sets:
+    https://doi.org/10.5281/zenodo.20407001
 
 The data used in the associated analyses are described in the accompanying
 paper; please see the paper's Methods and Data Availability statements for
