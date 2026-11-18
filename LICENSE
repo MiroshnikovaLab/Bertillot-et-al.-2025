@@ -38,15 +38,6 @@ When using this work, please cite:
 
     Analysis code and pretrained U-Nets: https://doi.org/10.5281/zenodo.20407001
 
-Third-party components
-----------------------
-The U-Net architecture used by the architecture workflows is based on the
-open-source ZeroCostDL4Mic 2D multilabel U-Net (Henriques Lab), which is
-itself derived from Ronneberger et al. 2015 (U-Net: Convolutional Networks
-for Biomedical Image Segmentation). See:
-    https://github.com/HenriquesLab/ZeroCostDL4Mic
-Original ZeroCostDL4Mic code is distributed under the MIT License.
-
 The data used in the associated analyses are described in the accompanying
 paper; please see the paper's Methods and Data Availability statements for
 details on the source patient cohort and ethical approvals.
