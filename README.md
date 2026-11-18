@@ -47,11 +47,11 @@ The notebooks are independent modules rather than a single ordered workflow. Run
 - **Architecture label prediction**: `Architecture Analysis/architecture_label_prediction.ipynb`
   Apply saved classifier artifacts to embedding JSON files.
 - **Architecture morphology**: `Architecture Analysis/morphological_feature_extraction.ipynb`
-  Measure manuscript-aligned mask morphology features: branch length, roughness, lumen area, and tumor/stroma summaries.
+  Measure the per-core mask features of the paper from tumour–stroma masks: branch length, branch types and straightness, skeleton cycles, lumens, contour roughness, and tumour–stroma ratio.
 - **Neighborhood features**: `Architecture Analysis/neighborhood_feature_extraction.ipynb`
   Measure local cell-neighborhood features from centroid/orientation tables.
 - **Nuclear shapes**: `Nuclear Shapes/compute_nuclear_shapes.ipynb`
-  Measure single-nucleus morphology from labeled nuclear masks.
+  Measure the single-nucleus shape features of the paper (PyRadiomics perimeter and axes, contour area, elliptic Fourier descriptors) from labeled nuclear masks.
 - **GeoMx analysis**: `GeoMx Analysis/geoMx_analysis_notebook.ipynb`
   Reproduce GeoMx clustering, DGE, and GSEA analyses.
 - **GeoMx pseudotime plots**: `GeoMx Analysis/geoMx_pseudotime_plots.ipynb`
@@ -127,8 +127,8 @@ Available environments:
 
 - `environment-architecture.yml`: U-Net segmentation, architecture embeddings, and architecture classification.
 - `environment-geomx.yml`: GeoMx spatial transcriptomics analysis, differential expression, and GSEA. It pins Scanpy 1.10.2 and harmonypy 0.0.10 rather than the Scanpy 1.9.6 and Harmony 0.0.9 cited in the manuscript Methods; the differential expression results reproduce with these versions.
-- `environment-neighborhood.yml`: cell-neighborhood distances, orientation order, and stroma proximity features.
-- `environment-nuclear-shapes.yml`: nuclear shape feature extraction from labeled nuclear masks.
+- `environment-neighborhood.yml`: architecture morphology features, cell-neighborhood distances, orientation order, and stroma proximity features.
+- `environment-nuclear-shapes.yml`: nuclear shape feature extraction from labeled nuclear masks (Python 3.9, PyRadiomics 3.1.0).
 
 ### Python venv / pip
 
@@ -169,7 +169,8 @@ papermill neighborhood_feature_extraction.ipynb out.ipynb -p CELL_FEATURE_TABLE 
 - The GeoMx differential expression in the paper compares each architecture against all other tumour regions without a patient term. To adjust for patient, set `DGE_COVARIATES = ['patient_id']` in the notebook, or run it with `papermill geoMx_analysis_notebook.ipynb out.ipynb -y "DGE_COVARIATES: [patient_id]"`. Architecture and patient are strongly confounded in this dataset (for example, fragmented regions come mostly from two patients), so this changes several architecture-level results.
 - Generated files, the trained architecture classifier, and private data are excluded from version control. The pretrained U-Nets and the gene sets are included (see Pretrained Models and Gene Sets).
 - If U-Net inference on CPU is unexpectedly slow (minutes per 512 px patch), set the environment variable `TF_ENABLE_ONEDNN_OPTS=0` before starting Jupyter.
-- `skan` is used for manuscript-aligned skeleton branch distances; the morphology utility falls back to total skeleton length if unavailable.
+- `skan` is pinned to 0.11.1 for the skeleton branch measurements; later releases rename the summary columns that the morphology features read.
+- The tumour and stroma label values are parameters of the morphology notebook: the masks written by `tumor-stroma_mask_prediction.ipynb` use `1` for stroma and `2` for tumour, while the masks behind the paper tables used `1` for tumour and `2` for stroma.
 - `python-louvain` and `networkx` are needed for the corrected centroid-community fragmentation index.
 
 ## Citation
