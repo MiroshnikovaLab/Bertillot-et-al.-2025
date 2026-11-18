@@ -4,6 +4,7 @@ channels:
 dependencies:
   - python=3.9.20
   - pip
+  - jupyterlab
   - pip:
       - tensorflow==2.17.0
       - keras==3.6.0

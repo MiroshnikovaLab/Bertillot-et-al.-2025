@@ -1,0 +1,41 @@
+{
+  "title": "MiroshnikovaLab/Bertillot-et-al.-2025: Bertillot et al. 2026",
+  "upload_type": "software",
+  "version": "v1.1",
+  "description": "<p>Analysis code from Bertillot, F., Herv&eacute;, S., Outla, Z. et al., <em>Heterogeneity co-evolves with architecture to determine colon cancer outcome</em> (2026). It contains the notebooks for tumour architecture analysis of colorectal cancer tissue microarrays (tumour&ndash;stroma segmentation, architecture classification, morphology and neighbourhood features), nuclear shape analysis, and GeoMx spatial transcriptomics analysis. It also includes the two pretrained U-Nets (tumour&ndash;stroma and architecture) and the gene sets used for the GeoMx and single-cell analyses. The architecture U-Net with ONNX exports is at doi:10.5281/zenodo.20343193.</p>",
+  "creators": [
+    {
+      "name": "Bertillot, Fabien",
+      "affiliation": "Max Planck Institute for Molecular Biomedicine; University of Helsinki",
+      "orcid": "0009-0000-5836-8711"
+    },
+    {
+      "name": "Wickström, Sara A.",
+      "affiliation": "Max Planck Institute for Molecular Biomedicine; University of Helsinki",
+      "orcid": "0000-0001-6383-6292"
+    },
+    {
+      "name": "Miroshnikova, Yekaterina A.",
+      "affiliation": "National Institute of Diabetes and Digestive and Kidney Diseases, National Institutes of Health; Max Planck Institute for Molecular Biomedicine",
+      "orcid": "0000-0001-9771-4963"
+    }
+  ],
+  "license": "cc-by-nc-4.0",
+  "keywords": [
+    "colorectal cancer",
+    "tumor architecture",
+    "multi-label U-Net",
+    "tumor-stroma segmentation",
+    "tissue microarray (TMA)",
+    "GeoMx",
+    "gene sets",
+    "digital pathology"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "10.5281/zenodo.20343193",
+      "relation": "isSupplementedBy",
+      "scheme": "doi"
+    }
+  ]
+}

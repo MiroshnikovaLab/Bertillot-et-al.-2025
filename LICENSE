@@ -3,8 +3,9 @@
 
 Copyright (c) 2026 Fabien Bertillot and co-authors / Miroshnikova Lab.
 
-This work - including the analysis notebooks, helper source code, and
-accompanying configuration files - is licensed under the
+This work - including the analysis notebooks, helper source code,
+accompanying configuration files, and the pretrained U-Net models in
+models/ - is licensed under the
 Creative Commons Attribution-NonCommercial 4.0 International License
 (CC BY-NC 4.0).
 
@@ -31,16 +32,12 @@ Plain-language summary:
 
 When using this work, please cite:
 
-    Bertillot, F. et al. (2026). [Paper title]. [Journal]. DOI: [pending]
+    Bertillot, F., Hervé, S., Outla, Z. et al. Heterogeneity co-evolves with
+    architecture to determine colon cancer outcome. Manuscript in revision
+    (2026).
 
-Third-party components
-----------------------
-The U-Net architecture used by the architecture workflows is based on the
-open-source ZeroCostDL4Mic 2D multilabel U-Net (Henriques Lab), which is
-itself derived from Ronneberger et al. 2015 (U-Net: Convolutional Networks
-for Biomedical Image Segmentation). See:
-    https://github.com/HenriquesLab/ZeroCostDL4Mic
-Original ZeroCostDL4Mic code is distributed under the MIT License.
+    Analysis code, pretrained U-Nets and gene sets:
+    https://doi.org/10.5281/zenodo.20407001
 
 The data used in the associated analyses are described in the accompanying
 paper; please see the paper's Methods and Data Availability statements for

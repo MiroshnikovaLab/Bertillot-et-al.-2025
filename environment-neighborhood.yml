@@ -4,6 +4,7 @@ channels:
 dependencies:
   - python=3.10.9
   - pip
+  - jupyterlab
   - pip:
       - numpy==1.23.5
       - pandas==2.2.3
@@ -18,4 +19,4 @@ dependencies:
       - matplotlib==3.7.0
       - seaborn==0.13.2
       - numba==0.56.4
-      - skan
+      - skan==0.11.1
