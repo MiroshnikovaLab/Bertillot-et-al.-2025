@@ -59,7 +59,7 @@ The notebooks are independent modules rather than a single ordered workflow. Run
 
 ## Pretrained Models
 
-The two pretrained U-Nets used in the paper are included in `models/`. Both are ZeroCostDL4Mic 2D multilabel U-Nets (https://github.com/HenriquesLab/ZeroCostDL4Mic) saved with Keras 2.15, taking single-channel `512 x 512` pan-cadherin images as input.
+The two pretrained U-Nets used in the paper are included in `models/`. Both are 2D multi-label U-Nets saved with Keras 2.15, taking single-channel `512 x 512` pan-cadherin images as input.
 
 | Model | File | Output | Used by |
 |---|---|---|---|
