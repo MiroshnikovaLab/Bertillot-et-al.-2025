@@ -29,8 +29,6 @@ GeoMx Analysis/
 
 models/
   tumor_stroma_unet.h5
-  architecture_unet.h5.part01 ... part04
-  join_architecture_unet.py
 
 data/geomx/
   gene_sets.json
@@ -59,27 +57,27 @@ The notebooks are independent modules rather than a single ordered workflow. Run
 
 ## Pretrained Models
 
-The two pretrained U-Nets used in the paper are included in `models/`. Both are 2D multi-label U-Nets saved with Keras 2.15, taking single-channel `512 x 512` pan-cadherin images as input.
+The two pretrained U-Nets used in the paper are 2D multi-label U-Nets saved with Keras 2.15, taking single-channel `512 x 512` pan-cadherin images as input. The tumour–stroma U-Net is included in `models/`. The architecture U-Net (373 MB) is published with ONNX exports and inference code at https://doi.org/10.5281/zenodo.20343193.
 
 | Model | File | Output | Used by |
 |---|---|---|---|
 | Tumour–stroma U-Net (trained on 30 TMA cores) | `models/tumor_stroma_unet.h5` | 3 classes: `0` background, `1` stroma, `2` tumour | `tumor-stroma_mask_prediction.ipynb` |
-| Architecture U-Net (trained on 196 archetype TMA cores) | `models/architecture_unet.h5` | 5 classes: `0` edge/background, `1` stroma, `2` glandular, `3` solid, `4` fragmented; bottleneck `conv2d_23` gives the 1024-dim tile embeddings | `architecture_training_pipeline.ipynb` |
+| Architecture U-Net (trained on 196 archetype TMA cores) | `models/architecture_unet.h5`, downloaded from Zenodo | 5 classes: `0` edge/background, `1` stroma, `2` glandular, `3` solid, `4` fragmented; bottleneck `conv2d_23` gives the 1024-dim tile embeddings | `architecture_training_pipeline.ipynb` |
 
-GitHub limits files to 100 MB, so the architecture U-Net (373 MB) is stored in four parts. Reassemble it once before running the notebooks:
+Download the architecture U-Net (`bertillot2026_unet_architecture_keras_weights.hdf5` in the Zenodo record) into `models/` before running the training notebook:
 
 ```bash
-python models/join_architecture_unet.py
+curl -L -o models/architecture_unet.h5 "https://zenodo.org/records/20343194/files/bertillot2026_unet_architecture_keras_weights.hdf5?download=1"
 ```
 
-The script writes `models/architecture_unet.h5` and checks it against the SHA-256 of the original file:
+SHA-256 of the two model files:
 
 ```text
 4bc19bac1439f984c56f6f28f2e5ae3eb0e00b3790e1c525efe7ddb5eda1bfc5  architecture_unet.h5
 2e7c069b80743a695b668db05124ab41456269927dfbccdea372fc939c77bab9  tumor_stroma_unet.h5
 ```
 
-The architecture U-Net is also available as a single file, with ONNX exports and inference code, at https://doi.org/10.5281/zenodo.20343193. The tile-level architecture classifier is not included: as described in the paper Methods, it needs to be retrained for each dataset with `architecture_training_pipeline.ipynb`, which saves it to `models/architecture_classifier/`.
+The tile-level architecture classifier is not included: as described in the paper Methods, it needs to be retrained for each dataset with `architecture_training_pipeline.ipynb`, which saves it to `models/architecture_classifier/`.
 
 ## Gene Sets
 
@@ -167,7 +165,7 @@ papermill neighborhood_feature_extraction.ipynb out.ipynb -p CELL_FEATURE_TABLE 
 
 - Folder names contain spaces to preserve the submitted analysis structure. Quote paths in shell commands.
 - The GeoMx differential expression in the paper compares each architecture against all other tumour regions without a patient term. To adjust for patient, set `DGE_COVARIATES = ['patient_id']` in the notebook, or run it with `papermill geoMx_analysis_notebook.ipynb out.ipynb -y "DGE_COVARIATES: [patient_id]"`. Architecture and patient are strongly confounded in this dataset (for example, fragmented regions come mostly from two patients), so this changes several architecture-level results.
-- Generated files, the trained architecture classifier, and private data are excluded from version control. The pretrained U-Nets and the gene sets are included (see Pretrained Models and Gene Sets).
+- Generated files, the trained architecture classifier, and private data are excluded from version control. The tumour–stroma U-Net and the gene sets are included; the architecture U-Net is downloaded from Zenodo (see Pretrained Models and Gene Sets).
 - If U-Net inference on CPU is unexpectedly slow (minutes per 512 px patch), set the environment variable `TF_ENABLE_ONEDNN_OPTS=0` before starting Jupyter.
 - `skan` is pinned to 0.11.1 for the skeleton branch measurements; later releases rename the summary columns that the morphology features read.
 - The tumour and stroma label values are parameters of the morphology notebook: the masks written by `tumor-stroma_mask_prediction.ipynb` use `1` for stroma and `2` for tumour, while the masks behind the paper tables used `1` for tumour and `2` for stroma.
@@ -179,7 +177,7 @@ If you use this code or the pretrained models, please cite:
 
 > Bertillot, F., Hervé, S., Outla, Z. *et al.* Heterogeneity co-evolves with architecture to determine colon cancer outcome. Manuscript in revision (2026).
 >
-> Analysis code, pretrained U-Nets and gene sets: https://doi.org/10.5281/zenodo.20407001
+> Analysis code, tumour–stroma U-Net and gene sets: https://doi.org/10.5281/zenodo.20407001
 >
 > Architecture U-Net with ONNX exports: https://doi.org/10.5281/zenodo.20343193
 

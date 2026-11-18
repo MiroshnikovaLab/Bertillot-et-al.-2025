@@ -35,12 +35,10 @@ results/
 !data/**/*.example.*
 !outputs/README.md
 
-# Pretrained U-Nets shipped with the repository (architecture U-Net split into parts)
+# Tumour-stroma U-Net shipped with the repository (the architecture U-Net is downloaded from Zenodo)
 !models/
 models/*
 !models/tumor_stroma_unet.h5
-!models/architecture_unet.h5.part*
-!models/join_architecture_unet.py
 
 # Gene sets shipped with the repository (patient data in data/geomx stay private)
 !data/geomx/

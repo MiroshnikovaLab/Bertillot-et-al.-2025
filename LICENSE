@@ -4,8 +4,8 @@
 Copyright (c) 2026 Fabien Bertillot and co-authors / Miroshnikova Lab.
 
 This work - including the analysis notebooks, helper source code,
-accompanying configuration files, and the pretrained U-Net models in
-models/ - is licensed under the
+accompanying configuration files, and the pretrained tumour-stroma U-Net
+in models/ - is licensed under the
 Creative Commons Attribution-NonCommercial 4.0 International License
 (CC BY-NC 4.0).
 
@@ -36,7 +36,7 @@ When using this work, please cite:
     architecture to determine colon cancer outcome. Manuscript in revision
     (2026).
 
-    Analysis code, pretrained U-Nets and gene sets:
+    Analysis code, tumour-stroma U-Net and gene sets:
     https://doi.org/10.5281/zenodo.20407001
 
 The data used in the associated analyses are described in the accompanying
