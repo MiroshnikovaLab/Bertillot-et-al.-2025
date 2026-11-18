@@ -1,150 +1,168 @@
-"""Reusable nuclear shape feature extraction utilities."""
+"""Nuclear shape feature extraction used for the per-cell tables of the paper.
+
+Perimeter and major/minor axes come from PyRadiomics ``shape2D``; area, convex
+area and the elliptic Fourier descriptors come from the OpenCV contour of each
+nucleus. Every nucleus is measured on a crop of the labeled mask around it.
+"""
 
 from __future__ import annotations
 
+import logging
 from pathlib import Path
-from typing import Iterable, List, Tuple
+from typing import Iterable, List, Tuple, Union
 
 import cv2
-import imageio.v3 as imageio
 import numpy as np
 import pandas as pd
+import radiomics.shape2D
+import SimpleITK as sitk
+import spatial_efd
+from PIL import Image
+from scipy.sparse import csr_matrix, find
 from scipy.spatial import ConvexHull
 
-try:
-    import spatial_efd
-except ImportError:  # pragma: no cover - optional dependency error is raised when used.
-    spatial_efd = None
+logging.getLogger("radiomics").setLevel(logging.CRITICAL + 1)
+
+PathLike = Union[str, Path]
 
 
-PathLike = str | Path
+def compute_polygon_area(vertices: List[Tuple[int, int]]) -> float:
+    n = len(vertices)
+    area = 0.0
+    for i in range(n):
+        x1, y1 = vertices[i]
+        x2, y2 = vertices[(i + 1) % n]
+        area += x1 * y2 - x2 * y1
+    return abs(area) / 2.0
 
 
-def compute_polygon_area(vertices: List[Tuple[float, float]]) -> float:
-    vertices_array = np.asarray(vertices, dtype=float)
-    if len(vertices_array) < 3:
-        return 0.0
-    x = vertices_array[:, 0]
-    y = vertices_array[:, 1]
-    return float(0.5 * np.abs(np.dot(x, np.roll(y, 1)) - np.dot(y, np.roll(x, 1))))
+def compute_shape_features(
+    mask_crop_sitk: sitk.Image,
+    polygon_tuple: List[Tuple[int, int]],
+    label: int,
+    harmonics: int = 25,
+    include_efd_coefficients: bool = True,
+) -> dict:
+    """Compute shape features of one nucleus from its mask crop and contour polygon."""
+    # shape2D only reads the mask, so the mask also serves as the image argument.
+    radiomics_shape_features = radiomics.shape2D.RadiomicsShape2D(mask_crop_sitk, mask_crop_sitk, label=label)
+    perimeter = radiomics_shape_features.getPerimeterFeatureValue()
+    major_axis = radiomics_shape_features.getMajorAxisLengthFeatureValue()
+    minor_axis = radiomics_shape_features.getMinorAxisLengthFeatureValue()
 
+    area = compute_polygon_area(polygon_tuple)
+    convex_area = ConvexHull(np.array(polygon_tuple), incremental=True).volume
 
-def compute_cell_orientation(coordinates: np.ndarray) -> Tuple[float, float]:
-    """Compute orientation vector from object coordinates using PCA."""
-    coordinates = np.asarray(coordinates, dtype=float)
-    if len(coordinates) < 2:
-        return float("nan"), float("nan")
-    centered = coordinates - np.mean(coordinates, axis=0)
-    covariance = np.dot(centered.T.copy(), centered)
-    eigenvalues, eigenvectors = np.linalg.eig(covariance)
-    orientation_vector = eigenvectors[:, np.argmin(eigenvalues)]
-    return float(orientation_vector[0]), float(orientation_vector[1])
+    x_polygon = [point[0] for point in polygon_tuple]
+    y_polygon = [point[1] for point in polygon_tuple]
+    efd_coeffs = spatial_efd.CalculateEFD(x_polygon, y_polygon, harmonics)
+    efd_coeffs, _ = spatial_efd.normalize_efd(efd_coeffs, size_invariant=True)
+    minor_axes = [(c[0] ** 2 + c[2] ** 2) ** 0.5 for c in efd_coeffs]
+    major_axes = [(c[1] ** 2 + c[3] ** 2) ** 0.5 for c in efd_coeffs]
+    efc_ratio = (minor_axes[0] + major_axes[0]) / (sum(minor_axes[1:]) + sum(major_axes[1:]))
 
-
-def contour_to_polygon(contour: np.ndarray) -> list[Tuple[float, float]]:
-    contour = np.squeeze(contour)
-    if contour.ndim != 2:
-        return []
-    return [(float(point[0]), float(point[1])) for point in contour]
-
-
-def calculate_polygon_perimeter(vertices: List[Tuple[float, float]]) -> float:
-    vertices_array = np.asarray(vertices, dtype=float)
-    if len(vertices_array) < 2:
-        return 0.0
-    diffs = np.diff(np.vstack([vertices_array, vertices_array[0]]), axis=0)
-    return float(np.sqrt((diffs**2).sum(axis=1)).sum())
-
-
-def calculate_polygon_axes(vertices: List[Tuple[float, float]]) -> Tuple[float, float]:
-    points = np.asarray(vertices, dtype=float)
-    if len(points) < 3:
-        return float("nan"), float("nan")
-    centered = points - points.mean(axis=0)
-    covariance = np.cov(centered.T)
-    eigenvalues = np.linalg.eigvalsh(covariance)
-    eigenvalues = np.sort(np.maximum(eigenvalues, 0))
-    minor_axis = 4.0 * np.sqrt(eigenvalues[0])
-    major_axis = 4.0 * np.sqrt(eigenvalues[-1])
-    return float(major_axis), float(minor_axis)
-
-
-def compute_efc_ratio(vertices: List[Tuple[float, float]], harmonics: int = 15) -> float:
-    if spatial_efd is None:
-        return float("nan")
-    x_polygon = [point[0] for point in vertices]
-    y_polygon = [point[1] for point in vertices]
-    coeffs = spatial_efd.CalculateEFD(x_polygon, y_polygon, harmonics)
-    coeffs, _ = spatial_efd.normalize_efd(coeffs, size_invariant=True)
-    minor = []
-    major = []
-    for i in range(len(coeffs)):
-        minor.append((coeffs[i][0] ** 2 + coeffs[i][2] ** 2) ** 0.5)
-        major.append((coeffs[i][1] ** 2 + coeffs[i][3] ** 2) ** 0.5)
-    denominator = sum(minor[1:]) + sum(major[1:])
-    return float((minor[0] + major[0]) / denominator) if denominator else float("nan")
-
-
-def compute_shape_features(vertices: List[Tuple[float, float]], harmonics: int = 15) -> dict[str, float]:
-    area = compute_polygon_area(vertices)
-    perimeter = calculate_polygon_perimeter(vertices)
-    major_axis, minor_axis = calculate_polygon_axes(vertices)
-    points = np.asarray(vertices, dtype=float)
-    try:
-        convex_area = float(ConvexHull(points).volume) if len(points) >= 3 else area
-    except Exception:
-        convex_area = area
-
-    return {
+    features = {
         "major_axis": major_axis,
         "minor_axis": minor_axis,
         "perimeter": perimeter,
         "convex_area": convex_area,
         "area": area,
-        "circularity": float(4 * np.pi * area / perimeter**2) if perimeter > 0 else float("nan"),
-        "roundness": float(4 * area / (np.pi * major_axis**2)) if major_axis and major_axis > 0 else float("nan"),
-        "solidity": float(area / convex_area) if convex_area > 0 else float("nan"),
-        "aspect_ratio": float(major_axis / minor_axis) if minor_axis and minor_axis > 0 else float("nan"),
-        "compactness": float(perimeter**2 / (4 * np.pi * area)) if area > 0 else float("nan"),
-        "efc_ratio": compute_efc_ratio(vertices, harmonics=harmonics),
+        "circularity": 4 * np.pi * (area / perimeter**2),
+        "roundness": 4 * (area / (np.pi * major_axis**2)),
+        "solidity": area / convex_area,
+        "aspect_ratio": major_axis / minor_axis,
+        "compactness": perimeter**2 / (4 * np.pi * area),
+        "efc_ratio": efc_ratio,
     }
+    if include_efd_coefficients:
+        features.update({f"efd_a{i}b{j}": efd_coeffs[i, j] for i in range(harmonics) for j in range(4)})
+    return features
 
 
-def compute_features_from_labeled_mask(mask_path: PathLike, harmonics: int = 15) -> pd.DataFrame:
-    """Compute nuclear shape features from a labeled mask image."""
+def convert_mask_to_polygon(mask: np.ndarray, label: int) -> Tuple[Tuple[int, int], ...]:
+    gray = (mask == label).astype(np.uint8) * 255
+    contours = cv2.findContours(gray, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)[-2]
+    longest = np.argmax([len(contour) for contour in contours])
+    return tuple((point[0][0], point[0][1]) for point in contours[longest])
+
+
+def generate_mask_crop(mask: np.ndarray, mask_csr: csr_matrix, label: int, delta: int = 5) -> np.ndarray:
+    rows, cols, _ = find(mask_csr == label)
+    return mask[rows.min() - delta : rows.max() + delta, cols.min() - delta : cols.max() + delta]
+
+
+def compute_cell_orientation(mask_csr: csr_matrix, label: int) -> np.ndarray:
+    """Orientation vector of a nucleus from the covariance of its pixel (row, column) coordinates."""
+    rows, cols, _ = find(mask_csr == label)
+    coordinates = np.column_stack([rows, cols]).astype("float64")
+    coordinates -= coordinates.mean(axis=0)
+    eigenvalues, eigenvectors = np.linalg.eig(coordinates.T @ coordinates)
+    # Taking a row of the eigenvector matrix reproduces the published orientation vectors.
+    return eigenvectors[np.argmin(eigenvalues), :]
+
+
+def remove_border_objects(mask: np.ndarray, border: int = 5) -> np.ndarray:
+    """Set to 0 every object with a pixel in the outer ``border`` rows or columns."""
+    mask = mask.copy()
+    rows = np.r_[0:border, mask.shape[0] - border : mask.shape[0] - 1]
+    cols = np.r_[0:border, mask.shape[1] - border : mask.shape[1] - 1]
+    border_labels = np.union1d(np.unique(mask[rows, :]), np.unique(mask[:, cols]))
+    mask[np.isin(mask, border_labels[border_labels != 0])] = 0
+    return mask
+
+
+def compute_features_from_labeled_mask(
+    mask_path: PathLike,
+    *,
+    harmonics: int = 25,
+    delta: int = 5,
+    remove_border: bool = False,
+    include_efd_coefficients: bool = True,
+    mask_suffix: str = "_mask",
+) -> pd.DataFrame:
+    """Compute shape features for every nucleus of a labeled mask (0 = background).
+
+    Centroids follow the convention of the paper tables: ``x_centroid`` is the
+    mean row index and ``y_centroid`` the mean column index of the nucleus.
+    Nuclei whose crop or contour cannot be measured (for example nuclei closer
+    than ``delta`` pixels to the image border) are skipped, as in the paper.
+    """
     mask_path = Path(mask_path)
-    mask = imageio.imread(mask_path)
-    if mask.ndim > 2:
-        mask = mask[..., 0]
+    image_name = mask_path.stem.removesuffix(mask_suffix) if mask_suffix else mask_path.stem
+    mask = np.array(Image.open(mask_path))
+    if remove_border:
+        mask = remove_border_objects(mask)
+    mask_csr = csr_matrix(mask)
 
     rows = []
-    labels = [label for label in np.unique(mask) if label != 0]
-    for label in labels:
-        binary = (mask == label).astype(np.uint8)
-        contours, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-        if not contours:
-            continue
-        contour = max(contours, key=cv2.contourArea)
-        vertices = contour_to_polygon(contour)
-        if len(vertices) < 3:
+    for cell_id in [label for label in np.unique(mask) if label != 0]:
+        try:
+            mask_crop = generate_mask_crop(mask, mask_csr, cell_id, delta=delta)
+            mask_crop_sitk = sitk.GetImageFromArray(mask_crop)
+            orientation = compute_cell_orientation(mask_csr, cell_id)
+            polygon = convert_mask_to_polygon(mask_crop, cell_id)
+            features = compute_shape_features(
+                mask_crop_sitk,
+                polygon,
+                int(cell_id),
+                harmonics=harmonics,
+                include_efd_coefficients=include_efd_coefficients,
+            )
+        except Exception:
             continue
 
-        coordinates = np.column_stack(np.where(mask == label))
-        y_centroid, x_centroid = coordinates.mean(axis=0)
-        x_orientation, y_orientation = compute_cell_orientation(coordinates)
-        features = compute_shape_features(vertices, harmonics=harmonics)
-        features.update(
+        cell_rows, cell_cols, _ = find(mask_csr == cell_id)
+        rows.append(
             {
-                "image_id": mask_path.stem,
-                "cell_id": int(label),
-                "label": int(label),
-                "x_centroid": float(x_centroid),
-                "y_centroid": float(y_centroid),
-                "x_orientation": x_orientation,
-                "y_orientation": y_orientation,
+                "image_name": image_name,
+                "cell_id": int(cell_id),
+                "x_centroid": cell_rows.mean(),
+                "y_centroid": cell_cols.mean(),
+                "x_orientation": orientation[0],
+                "y_orientation": orientation[1],
+                **features,
             }
         )
-        rows.append(features)
 
     return pd.DataFrame(rows)
 
@@ -153,9 +171,14 @@ def batch_compute_nuclear_shapes(
     mask_paths: Iterable[PathLike],
     output_dir: PathLike,
     *,
-    harmonics: int = 15,
+    harmonics: int = 25,
+    delta: int = 5,
+    remove_border: bool = False,
+    include_efd_coefficients: bool = True,
+    mask_suffix: str = "_mask",
     overwrite: bool = False,
 ) -> None:
+    """Write one ``features_image=<mask stem>.h5`` table per labeled mask."""
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     for mask_path in mask_paths:
@@ -163,5 +186,12 @@ def batch_compute_nuclear_shapes(
         output_path = output_dir / f"features_image={mask_path.stem}.h5"
         if output_path.exists() and not overwrite:
             continue
-        features = compute_features_from_labeled_mask(mask_path, harmonics=harmonics)
+        features = compute_features_from_labeled_mask(
+            mask_path,
+            harmonics=harmonics,
+            delta=delta,
+            remove_border=remove_border,
+            include_efd_coefficients=include_efd_coefficients,
+            mask_suffix=mask_suffix,
+        )
         features.to_hdf(output_path, key="df", mode="w")
